@@ -3,7 +3,7 @@ import re
 from logster.logster_helper import (MetricObject, LogsterParser,
     LogsterParsingException)
 
-class EventParser(LogsterParser):
+class EventLogster(LogsterParser):
 
     def __init__(self, option_string=None):
         self.data = {}
