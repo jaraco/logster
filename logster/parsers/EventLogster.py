@@ -21,7 +21,8 @@ class EventLogster(LogsterParser):
         try:
             reg = 'EVENT\(.*\)'
             res = re.search(reg, line)
-            name, items = eval(res.group(), vars(self.__class__))
+            if not res: return
+            name, items = eval(res.group(), {}, vars(self.__class__))
             self.data.setdefault(name, []).append(items)
         except Exception, e:
             raise LogsterParsingException(str(e))
