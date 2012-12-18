@@ -35,5 +35,5 @@ class EventLogster(LogsterParser):
         # Return a list of metrics objects
         return [
             MetricObject(name, len(items) / duration, "Hz")
-            for name, items in self.data
+            for name, items in self.data.iteritems()
         ]
