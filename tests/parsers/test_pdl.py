@@ -32,3 +32,9 @@ class TestPDL(object):
         result = self.parser.make_metric('callers')
         assert len(result) == 1
 
+    def test_get_state(self):
+        line = " INFO [server_foo asdf-2134] CALL some_name(1, 1234)"
+        self.parser.parse_line(line)
+        result = self.parser.get_state(1)
+        assert len(result) == 2
+
