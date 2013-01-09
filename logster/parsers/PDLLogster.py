@@ -4,7 +4,7 @@ from logster.logster_helper import LogsterParser, LogsterParsingException, Metri
 
 class PDLLogster(LogsterParser):
 
-    def __init__(self):
+    def __init__(self, option_string=None):
         self.data = {'servers':{}, 'callers':{}}
 
     def parse_line(self, line):
@@ -29,8 +29,9 @@ class PDLLogster(LogsterParser):
             raise LogsterParsingException(str(e))
 
     def make_metric(self, metric_type):
+        prefix = 'pdl.%s.' % metric_type
         return [
-            MetricObject(name, len(items), 'Calls per server')
+            MetricObject(prefix+name, len(items), 'Calls per server')
             for name, items in self.data[metric_type].iteritems()
         ]
 
