@@ -1,11 +1,11 @@
 import re
-from logster.logster_helper import LogsterParser, LogsterParsingException
+from logster.logster_helper import LogsterParser, LogsterParsingException, MetricObject
 
 
 class PDLLogster(LogsterParser):
 
     def __init__(self):
-        self.data = {}
+        self.data = {'servers':{}, 'callers':{}}
 
 
     def parse_line(self, line):
@@ -25,13 +25,25 @@ class PDLLogster(LogsterParser):
             result = match.groupdict()
             server_id = result.get('server_id', 'default')
             caller_name = result.get('caller_name', 'default')
-            self.data.setdefault(server_id, []).append(caller_name)
-            self.data.setdefault(caller_name, []).append(server_id)
+            self.data['servers'].setdefault(server_id, []).append(caller_name)
+            self.data['callers'].setdefault(caller_name, []).append(server_id)
         except Exception, e:
             raise LogsterParsingException(str(e))
+
+    def make_metric(self, metric_type):
+        return [
+            MetricObject(name, len(items), 'Calls per server')
+            for name, items in self.data[metric_type].iteritems()
+        ]
 
     def get_state(self, duration):
         """
         Return 2 metrics: one for the server_id and one for the caller_name
         """
+        self.duration = duration
+
+        server_metrics = self.make_metric('servers')
+        caller_metrics = self.make_metric('callers')
+
+        return server_metrics + caller_metrics
 
