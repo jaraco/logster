@@ -1,4 +1,5 @@
 import re
+import collections
 
 from logster.logster_helper import (MetricObject, LogsterParser,
     LogsterParsingException)
@@ -6,10 +7,10 @@ from logster.logster_helper import (MetricObject, LogsterParser,
 class EventLogster(LogsterParser):
 
     def __init__(self, option_string=None):
-        self.data = {}
+        self.data = collections.defaultdict(lambda: 0)
 
-    def EVENT(name, **items):
-        return name, items
+    def EVENT(name, **params):
+        return name, params
 
     def parse_line(self, line):
         '''
@@ -22,18 +23,16 @@ class EventLogster(LogsterParser):
             reg = 'EVENT\(.*\)'
             res = re.search(reg, line)
             if not res: return
-            name, items = eval(res.group(), {}, vars(self.__class__))
-            self.data.setdefault(name, []).append(items)
+            name, params = eval(res.group(), {}, vars(self.__class__))
+            if 'surveyid' in params:
+                name += '.' + str(params['surveyid'])
+            self.data[name] += 1
         except Exception, e:
             raise LogsterParsingException(str(e))
 
     def get_state(self, duration):
         '''Run any necessary calculations on the data collected from the logs
         and return a list of metric objects.'''
-        self.duration = duration
 
         # Return a list of metrics objects
-        return [
-            MetricObject(name, len(items) / duration, "Hz")
-            for name, items in self.data.iteritems()
-        ]
+        return [MetricObject(name, self.data[name]) for name in self.data]
